@@ -1,72 +1,103 @@
+import Plugin from '../plugin';
 import vec3 from 'vec3';
-import { botCommandParser } from '../utils';
 
-export default ({ bot }) => {
-  /**
-   * Commands:
-   * come                 - Comes to the calling player
-   * come <playername>    - Comes to the given playername
-   * come <x> <y> <z>     - Comes to the given coordinates
-   */
-  bot.on('chat', (username, message) => {
-    const command = botCommandParser(bot, username, message);
-    if (!command) {
+export default class Echo extends Plugin {
+  state = {
+    target: null,
+  };
+
+  onCommand = (username, command, args) => {
+    if (command !== 'come') {
       return;
     }
 
-    if (command[0] === 'come') {
-      // Comes to the calling player
-      if (command.length === 1) {
-        if (bot.players[username].entity === null) {
-          bot.chat(`You are too far away, i cannot find you from here.`);
+    let target = null;
+    switch (args.length) {
+      case 0: // Come to the asking player
+        target = username;
+
+        if (this.bot.players[target].entity === null) {
+          this.bot.chat(`You are too far away, i cannot find your position from here.`);
           return;
         }
 
-        bot.navigate.to(bot.players[username].entity.position);
-      }
+        this.setState({ target });
 
-      // Comes to the given playername
-      if (command.length === 2) {
-        if (bot.players[username].entity === null) {
-          bot.chat(`${command[1]} is too far away.`);
+        this.bot.navigate.to(this.bot.players[target].entity.position);
+        break;
+
+      case 1: // Come to a given playername
+        target = args[0];
+
+        if (!this.bot.players[target]) {
+          this.bot.chat(`I can't find the player ${target}`);
           return;
         }
 
-        bot.navigate.to(bot.players[command[1]].entity.position);
-      }
+        if (this.bot.players[target].entity === null) {
+          this.bot.chat(`${target} is too far away, i can't find ${target}'s from here.`);
+          return;
+        }
 
-      // Comes to the given coordinates
-      if (command.length === 4) {
-        const position = vec3(
-          command[1],
-          command[2],
-          command[3],
-        );
+        this.setState({ target });
 
-        bot.navigate.to(position);
-      }
+        this.bot.navigate.to(this.bot.players[target].entity.position);
+        break;
+
+      case 3: // Come to the given coords x y z
+        const x = args[0];
+        const y = args[1];
+        const z = args[2];
+
+        let point = vec3(x, y, z);
+
+        // @TODO: Check if the block is in range, if so, check if the 
+        // block is air and go down until solid ground is found.
+        // console.log(this.bot.blockAt(point));
+
+        this.setState({
+          target: point,
+        });
+
+        this.bot.navigate.to(point);
+        break;
     }
-  });
+  };
 
-  bot.navigate.on('pathPartFound', (path) => {
-    bot.chat(`Going ${path.length} meters in the general direction now.`);
-  });
+  onNavigate = (action, path) => {
+    console.log(action);
 
-  bot.navigate.on('pathFound', (path) => {
-    bot.chat(`I can get there in ${path.length} meters.`);
-  });
+    if (this.state.target === null) {
+      return;
+    }
 
-  bot.navigate.on('cannotFind', (closestPath) => {
-    bot.chat('Unable to find path, getting as close as possible.');
-    bot.navigate.walk(closestPath);
-  });
+    switch (action) {
+      case 'pathPartFound':
+        this.bot.chat(`Going ${path.length} meters in the general direction now.`);
+        break;
 
-  bot.navigate.on('arrived', () => {
-    bot.chat('I have arrived!');
-  });
+      case 'pathFound':
+        this.bot.chat(`I can get there in ${path.length} meters.`);
+        break;
 
-  bot.navigate.on('interrupted', () => {
-    bot.chat('Something interrupted me...');
-  });
+      case 'cannotFind':
+        this.bot.chat(`Unable to find path, getting as close as possible.`);
+        this.bot.navigate.walk(path);
+        break;
+
+      case 'arrived':
+        this.bot.chat(`I have arrived!`);
+        this.setState({
+          target: null,
+        });
+        break;
+
+      case 'interrupted':
+        this.bot.chat(`Something interrupted me...`);
+        this.setState({
+          target: null,
+        });
+        break;
+    }
+  };
 };
-

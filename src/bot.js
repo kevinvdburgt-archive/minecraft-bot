@@ -3,7 +3,10 @@ import mineflayerNavigationFactory from 'mineflayer-navigate';
 import { readCache, writeCache } from './utils';
 import { authenticate } from './api/auth';
 import { realmsCookieString, realmsAcceptTOS, realmsWorlds, realmsJoin } from './api/realms';
-import pluginCome from './plugins/come';
+import PluginCome from './plugins/come';
+import PluginInfo from './plugins/info';
+// import pluginSleep from './plugins/sleep';
+import PluginEcho from './plugins/echo';
 
 const mineflayerNavigate = mineflayerNavigationFactory(mineflayer);
 
@@ -42,7 +45,10 @@ export default class Bot {
     mineflayerNavigate(this.bot);
 
     // Add custom plugins
-    pluginCome(this);
+    new PluginCome(this);
+    new PluginInfo(this);
+    // pluginSleep(this);
+    new PluginEcho(this);
   };
 
   getSession = async () => {
