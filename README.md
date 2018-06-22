@@ -18,3 +18,5 @@ Replace `botname` with the ingame username.
 |`botname follow`|follow.js|The bot will follow you|
 |`botname follow stop`|follow.js|The bot will stops following|
 |`botname follow <playername>`|follow.js|The bot will follos the given player|
+|`botname sleep`|sleep.js|Find the nearest bed and sleep in it|
+|`botname wake`|sleep.js|Wake up from sleeping|

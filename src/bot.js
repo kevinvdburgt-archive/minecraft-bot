@@ -5,7 +5,7 @@ import { authenticate } from './api/auth';
 import { realmsCookieString, realmsAcceptTOS, realmsWorlds, realmsJoin } from './api/realms';
 import PluginCome from './plugins/come';
 import PluginInfo from './plugins/info';
-// import pluginSleep from './plugins/sleep';
+import PluginSleep from './plugins/sleep';
 import PluginEcho from './plugins/echo';
 import PluginFollow from './plugins/follow';
 import PluginStripmine from './plugins/stripmine';
@@ -49,7 +49,7 @@ export default class Bot {
     // Add custom plugins
     new PluginCome(this);
     new PluginInfo(this);
-    // pluginSleep(this);
+    new PluginSleep(this);
     new PluginEcho(this);
     new PluginFollow(this);
     new PluginStripmine(this);
