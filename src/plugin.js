@@ -10,7 +10,6 @@ export default class Plugin {
     // Handle chat events
     if (typeof this.onCommand === 'function') {
       this.bot.on('chat', (username, message) => {
-        console.log('chat event');
         if (username === this.bot.username) {
           return;
         }

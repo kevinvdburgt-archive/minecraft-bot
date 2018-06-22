@@ -8,6 +8,7 @@ import PluginInfo from './plugins/info';
 // import pluginSleep from './plugins/sleep';
 import PluginEcho from './plugins/echo';
 import PluginFollow from './plugins/follow';
+import PluginStripmine from './plugins/stripmine';
 
 const mineflayerNavigate = mineflayerNavigationFactory(mineflayer);
 
@@ -51,6 +52,7 @@ export default class Bot {
     // pluginSleep(this);
     new PluginEcho(this);
     new PluginFollow(this);
+    new PluginStripmine(this);
   };
 
   getSession = async () => {

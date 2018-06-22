@@ -23,6 +23,7 @@
   "dependencies": {
     "mineflayer": "^2.7.2",
     "mineflayer-navigate": "0.0.10",
+    "mineflayer-scaffold": "0.0.5",
     "prismarine-tokens": "^1.0.3",
     "request": "^2.87.0",
     "sha1": "^1.1.1",

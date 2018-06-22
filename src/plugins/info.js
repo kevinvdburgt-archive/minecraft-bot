@@ -1,6 +1,6 @@
 import Plugin from '../plugin';
 
-export default class Echo extends Plugin {
+export default class Info extends Plugin {
   onCommand = (username, command, args) => {
     switch (command) {
       case 'hp':

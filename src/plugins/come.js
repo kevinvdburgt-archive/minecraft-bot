@@ -1,7 +1,7 @@
 import Plugin from '../plugin';
 import vec3 from 'vec3';
 
-export default class Echo extends Plugin {
+export default class Come extends Plugin {
   state = {
     target: null,
   };
