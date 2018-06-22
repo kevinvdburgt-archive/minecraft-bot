@@ -7,6 +7,7 @@ import PluginCome from './plugins/come';
 import PluginInfo from './plugins/info';
 // import pluginSleep from './plugins/sleep';
 import PluginEcho from './plugins/echo';
+import PluginFollow from './plugins/follow';
 
 const mineflayerNavigate = mineflayerNavigationFactory(mineflayer);
 
@@ -49,6 +50,7 @@ export default class Bot {
     new PluginInfo(this);
     // pluginSleep(this);
     new PluginEcho(this);
+    new PluginFollow(this);
   };
 
   getSession = async () => {

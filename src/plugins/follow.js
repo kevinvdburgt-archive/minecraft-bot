@@ -1,54 +1,84 @@
-import { botCommandParser } from '../utils';
+import Plugin from '../plugin';
+import vec3 from 'vec3';
 
-export default ({ bot }) => {
-  let state = {
-    following: null,
+export default class Echo extends Plugin {
+  state = {
+    target: null,
   };
 
-  /**
-   * Commands:
-   * follow               - Follows to the calling player
-   * follow <playername>  - Follows to the given playername
-   * follow stop          - Stops following
-   */
-  bot.on('chat', (username, message) => {
-    const command = botCommandParser(bot, username, message);
-    if (!command) {
+  followTarget = () => {
+    if (this.state.target === null) {
       return;
     }
 
-    if (command[0] === 'follow') {
-      // Comes to the calling player
-      if (command.length === 1) {
-        if (bot.players[username].entity === null) {
-          bot.chat(`You are too far away, i cannot find you from here.`);
-          return;
-        }
+    const player = this.bot.players[this.state.target];
+    const entity = player.entity;
 
-        bot.navigate.to(bot.players[username].entity.position);
-      }
-
-      // Comes to the given playername
-      if (command.length === 2) {
-        if (bot.players[username].entity === null) {
-          bot.chat(`${command[1]} is too far away.`);
-          return;
-        }
-
-        bot.navigate.to(bot.players[command[1]].entity.position);
-      }
-
-      // Comes to the given coordinates
-      if (command.length === 4) {
-        const position = vec3(
-          command[1],
-          command[2],
-          command[3],
-        );
-
-        bot.navigate.to(position);
-      }
+    if (!entity) {
+      this.setState({
+        target: null,
+      });
     }
-  });
-};
 
+    const path = this.bot.navigate.findPathSync(entity.position, {
+      timeout: 250,
+      endRadius: 4,
+    });
+
+    this.bot.navigate.walk(path.path, () => {
+      this.bot.lookAt(entity.position.plus(vec3(0, 1.62, 0)));
+    });
+
+    setTimeout(() => this.followTarget(), 500);
+  };
+
+  onCommand = (username, command, args) => {
+    if (command !== 'follow') {
+      return;
+    }
+
+    if (args.length === 0) {
+      const target = username;
+
+        if (this.bot.players[target].entity === null) {
+          this.bot.chat(`You are too far away, i cannot find your position from here.`);
+          return;
+        }
+
+        this.setState({ target });
+
+        this.bot.chat(`Okay, i will follow you!`);
+
+        this.followTarget();
+    } else if (args.length === 1 && args[0] === 'stop') {
+      if (this.state.target === null) {
+        this.bot.chat(`I can't stop, i am not following anyone.`);
+        return;
+      }
+
+      this.bot.chat(`Okay, i'll stop following ${this.state.target}`);
+
+      this.setState({ target: null });
+
+      this.bot.navigate.stop('interrupted');
+    } else if (args.length === 1) {
+      const target = args[0];
+
+      if (!this.bot.players[target]) {
+        this.bot.chat(`I can't find the player ${target}`);
+        return;
+      }
+
+      if (this.bot.players[target].entity === null) {
+        this.bot.chat(`${target} is too far away, i can't find ${target}'s from here.`);
+        return;
+      }
+
+      this.setState({ target });
+
+      this.bot.chat(`Okay, i will follow ${target}!`);
+
+      this.followTarget();
+    }
+  };
+};
