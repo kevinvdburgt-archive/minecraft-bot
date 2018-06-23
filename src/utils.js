@@ -21,16 +21,6 @@ export const readCache = (filename, init = {}) => {
   }
 };
 
-export const botCommandParser = (bot, username, message) => {
-  if (username === bot.username) {
-    return null;
-  }
-
-  const tokens = message.split(' ');
-
-  if (tokens.shift() === bot.username) {
-    return tokens;
-  }
-
-  return null;
+export const log = (...args) => {
+  console.log(...args);
 };

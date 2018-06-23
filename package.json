@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node ./bin/index.js",
     "build": "./node_modules/.bin/babel src --out-dir bin",
-    "dev": "nodemon --exec babel-node --watch src/ -- src/index.js"
+    "dev": "nodemon --exec babel-node --watch src/ -- src/index.js",
+    "dev-test": "nodemon --exec babel-node --watch src/ -- src/test.js"
   },
   "keywords": [],
   "author": "",
@@ -21,6 +22,7 @@
     "nodemon": "^1.17.5"
   },
   "dependencies": {
+    "chalk": "^2.4.1",
     "mineflayer": "^2.7.2",
     "mineflayer-navigate": "0.0.10",
     "mineflayer-scaffold": "0.0.5",

@@ -1,15 +1,10 @@
 import mineflayer from 'mineflayer';
 import mineflayerNavigationFactory from 'mineflayer-navigate';
-import { readCache, writeCache } from './utils';
+import fs from 'fs';
+import path from 'path';
+import { readCache, writeCache, log } from './utils';
 import { authenticate } from './api/auth';
 import { realmsCookieString, realmsAcceptTOS, realmsWorlds, realmsJoin } from './api/realms';
-import PluginCome from './plugins/come';
-import PluginInfo from './plugins/info';
-import PluginSleep from './plugins/sleep';
-import PluginEcho from './plugins/echo';
-import PluginFollow from './plugins/follow';
-import PluginStripmine from './plugins/stripmine';
-import PluginJump from './plugins/jump';
 
 const mineflayerNavigate = mineflayerNavigationFactory(mineflayer);
 
@@ -48,13 +43,10 @@ export default class Bot {
     mineflayerNavigate(this.bot);
 
     // Add custom plugins
-    new PluginCome(this);
-    new PluginInfo(this);
-    new PluginSleep(this);
-    new PluginEcho(this);
-    new PluginFollow(this);
-    new PluginStripmine(this);
-    new PluginJump(this);
+    this.plugins = fs.readdirSync(path.resolve(__dirname, 'plugins')).map((file) => {
+      const plugin = require(path.resolve(__dirname, 'plugins', file)).default;
+      return new plugin(this);
+    });
   };
 
   getSession = async () => {
