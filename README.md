@@ -22,3 +22,7 @@ Replace `botname` with the ingame username.
 |`botname wake`|sleep.js|Wake up from sleeping|
 |`botname jump`|jump.js|Starts jumping like an idiot|
 |`botname jump stop`|jump.js|Stops the jumping|
+|`botname excavate`|excavate.js|Starts the excavating process|
+|`botname excavate stop`|excavate.js|Stops the excavating process|
+|`botname inventory`|inventory.js|Display's all the items in the bot's inventory|
+|`botname inventory toss`|inventory.js|Tosses all items from the inventory's bot|

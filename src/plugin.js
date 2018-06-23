@@ -40,13 +40,15 @@ export default class Plugin {
   };
 
   setState = (obj) => {
-    const old = this.state;
-
     this.state = {
       ...this.state,
       ...obj,
     };
-
-    console.log('stateChange', old, this.state);
   };
+
+  setBotState = (obj) => {
+
+  };
+
+
 };
