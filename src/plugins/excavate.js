@@ -1,21 +1,12 @@
 import vec3 from 'vec3';
 import Plugin from '../plugin';
+import { efficientDig } from '../botutils';
 
 export default class Excavate extends Plugin {
   state = {
     excavating: false,
     landmarks: [],
   };
-
-  constructor(instance) {
-    super(instance);
-
-    this.bot.on('spawn', () => {
-      this.setState({
-        excavating: true,
-      });
-    });
-  }
 
   excavatePostion = (step) => {
     const maxx = Math.max(this.state.landmarks[0].x, this.state.landmarks[1].x);
@@ -38,27 +29,75 @@ export default class Excavate extends Plugin {
   };
 
   excavate = (step) => {
-    const position = this.excavatePostion(step);
+    if (!this.state.excavating) {
+      return;
+    }
 
+    const position = this.excavatePostion(step);
     const block = this.bot.blockAt(position);
 
+    // If the block is not diggable, ignore it and continue to the next step
     if (block.boundingBox !== 'block') {
       this.excavate(step + 1);
       return;
     }
 
+    // Navigate to the block, so we are in range for digging it
     const path = this.bot.navigate.findPathSync(position.plus(vec3(0, 1, 0)), {
       timeout: 2500,
       endRadius: 1,
     });
 
     this.bot.navigate.walk(path.path, (status) => {
-      if (status === 'arrived') {
-        this.bot.dig(block, () => {
+      efficientDig(this.bot, block)
+        .then(() => {
+          this.excavate(step + 1);
+        })
+        .catch((err) => {
+          console.log(err);
           this.excavate(step + 1);
         });
-      }
     });
+  };
+
+  onCommand = (username, command, args) => {
+    if (command !== 'excavate') {
+      return;
+    }
+
+    // Start the excavation
+    if (args.length === 0) {
+      if (this.state.excavating) {
+        this.bot.chat(`Already busy with excavating.`);
+        return;
+      }
+
+      if (!this.bot.players[username].entity) {
+        this.bot.chat(`You are to far away from me.`);
+        return;
+      }
+
+      this.bot.chat(`Places 2 redstone torches for the landmarks.`);
+
+      this.setState({
+        excavating: true,
+        landmarks: [],
+      });
+    }
+
+    else if (args.length === 1 && args[0] === 'stop') {
+      if (!this.state.excavating) {
+        this.bot.chat(`I'm not excavating...`);
+        return;
+      }
+
+      this.bot.chat(`Okay, stopping the excavating!`);
+
+      this.setState({
+        excavating: false,
+        landmarks: [],
+      });
+    }
   };
 
   onBlockUpdate = (oldBlock, newBlock) => {
