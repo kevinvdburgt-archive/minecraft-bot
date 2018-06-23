@@ -1,36 +1,20 @@
-const state = {
-  points: [
-    {x: 0, y: 0, z: 0},
-    {x: 9, y: 9, z: 9},
-  ],
-};
+// A and B represents landmarks (placed redstone torches).
+const a = {x:  0, y: 10, z:  0};
+const b = {x: 10, y: 10, z: 10};
 
-const excavate = (step) => {
-  const minx = Math.min(state.points[0].x, state.points[1].x);
-  const minz = Math.min(state.points[0].z, state.points[1].z);
-  const maxx = Math.max(state.points[0].x, state.points[1].x);
-  const maxz = Math.max(state.points[0].z, state.points[1].z);
-  const maxy = Math.max(state.points[0].y, state.points[1].y);
-  const surf = Math.abs(maxx - minx + 1) * Math.abs(maxz - minz + 1);
+const maxx = Math.max(a.x, b.x);
+const minx = Math.min(a.x, b.x);
+const maxy = Math.max(a.y, b.y);
+const miny = Math.min(a.y, b.y);
+const maxz = Math.max(a.z, b.z);
+const minz = Math.min(a.z, b.z);
+const square = Math.abs(maxx - minx) * Math.abs(maxz - minz);
 
-  console.log(`Surface size: ${surf} m2`);
+// Target block
+const step = 101; // Removed block count
 
-  console.log('m2:', (Math.abs(maxx - minx + 1) * Math.abs(maxz - minz + 1)));
+const x = step % maxx; // @TODO: Flip every row for performance?
+const y = maxy - Math.ceil(step / square);
+const z = Math.floor(step / maxz);
 
-  const y = (Math.abs(maxx - minx + 1) * Math.abs(maxz - minz + 1)) % step;
-
-  console.log(y);
-};
-
-excavate(11);
-
-console.log(102 % 100);
-
-// const minX = Math.min(this.state.points[0].x, this.state.points[1].x);
-//     const maxX = Math.max(this.state.points[0].x, this.state.points[1].x);
-//     const minZ = Math.min(this.state.points[0].z, this.state.points[1].z);
-//     const maxZ = Math.max(this.state.points[0].z, this.state.points[1].z);
-    
-//     const maxY = Math.max(this.state.points[0].y, this.state.points[1].y);
-
-//     const level = step % Math.abs(maxX - minX + 1) * Math.abs(maxZ - minZ + 1);
+console.log('Target at step %d:', step, x, y, z);
