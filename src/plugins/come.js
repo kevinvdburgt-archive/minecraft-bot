@@ -1,110 +1,68 @@
-import vec3 from 'vec3';
-import Plugin from '../plugin';
+import Plugin from '../Plugin';
+import { navigateToPlayer, navigateToPosition, navigateStop, navigatePath } from '../utils/botactions';
 
 export default class Come extends Plugin {
   state = {
-    target: null,
+    target: false,
   };
 
   /**
-   * Comes to a given player name
+   * Handle commands
    */
-  comeToPlayer = (username) => {
-    if (this.state.target !== null) {
-      if (typeof this.state.target === 'string') {
-        this.bot.chat(`Already on my way to ${this.state.target}'s position.`);
-      } else if (typeof this.state.target === 'Vec3') {
-        this.bot.chat(`Already on my way to ${this.state.target.x} ${this.state.target.y} ${this.state.target.z}.`);
-      }
-      return;
-    }
-
-    if (!this.bot.players[username]) {
-      this.bot.chat(`I can't find ${username}.`);
-      return;
-    }
-
-    if (!this.bot.players[username].entity) {
-      this.bot.chat(`${username} is too far away from me.`);
-      return;
-    }
-
-    this.setState({
-      target: username,
-    });
-
-    this.bot.navigate.to(this.bot.players[username].entity.position);
-  };
-
-  /**
-   * Comves to a given vec3 position
-   */
-  comeToCoords = (position) => {
-    if (this.state.target !== null) {
-      if (typeof this.state.target === 'string') {
-        this.bot.chat(`Already on my way to ${this.state.target}'s position.`);
-      } else if (typeof this.state.target === 'Vec3') {
-        this.bot.chat(`Already on my way to ${this.state.target.x} ${this.state.target.y} ${this.state.target.z}.`);
-      }
-      return;
-    }
-
-    this.setState({
-      target: position,
-    });
-
-    this.bot.navigate.to(position);
-  };
-
-  /**
-   * Stop the coming activity
-   */
-  stop = () => {
-    if (this.state.target === null) {
-      this.bot.chat(`I'm not doying anything?`);
-      return;
-    }
-
-    this.bot.navigate.stop('interrupted');
-
-    this.setState({
-      target: null,
-    });
-  };
-
   onCommand = (username, command, args) => {
-    // Only listen for the command 'come'
     if (command !== 'come') {
       return;
     }
 
-    // Set the bot position to the calling player
     if (args.length === 0) {
-      this.comeToPlayer(username);
-    }
-
-    // Set the bot position to a given player name
-    else if (args.length === 1 && args[0] !== 'stop') {
-      this.comeToPlayer(args[0]);
-    }
-
-    // Set the bot position to the given coordinates
-    else if (args.length === 3) {
+      navigateToPlayer(this.bot, username)
+        .then(() => {
+          this.setState({
+            target: username,
+          });
+        })
+        .catch((err) => {
+          this.bot.chat(err);
+        });
+    } else if (args.length === 1 && args[0] !== 'stop') {
+      navigateToPlayer(this.bot, args[0])
+        .then(() => {
+          this.setState({
+            target: args[0],
+          });
+        })
+        .catch((err) => {
+          this.bot.chat(err);
+        });
+    } else if (args.length === 3) {
       const position = vec3(
         parseInt(args[0]),
         parseInt(args[1]),
         parseInt(args[2]),
       );
 
-      this.comeToCoords(position);
-    }
-
-    // Stop the bot from his current actions
-    else if (args.length === 1 && args[0] === 'stop') {
-      this.stop();
+      navigateToPosition(this.bot, position)
+        .then(() => {
+          this.setState({
+            target: position,
+          });
+        })
+        .catch((err) => {
+          this.bot.chat(err);
+        });   
+    } else if (args.length === '1' && args[0] === 'stop') {
+      navigateStop(this.bot)
+        .then(() => {
+          this.setState({
+            target: null,
+          });
+        });
     }
   };
 
+  /**
+   * Handle navigation
+   */
   onNavigate = (action, path) => {
     if (this.state.target === null) {
       return;
@@ -155,12 +113,14 @@ export default class Come extends Plugin {
 
       case 'cannotFind':
         this.bot.chat(`Unable to find path, getting as close as possible.`);
-        this.bot.navigate.walk(path);
 
-        this.setState({
-          target: null,
-        });
+        navigatePath(this.bot, path)
+          .then(() => {
+            this.setState({
+              target: null,
+            });
+          });
         break;
     }
   };
-}
+};

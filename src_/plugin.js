@@ -1,17 +1,13 @@
 import chalk from 'chalk';
-
 export default class Plugin {
   state = {};
 
   constructor (instance) {
     this.bot = instance.bot;
     this.instance = instance;
-    setImmediate(() => this.bind()); // @TODO: Feel a bit hacky, but it works..
+    setImmediate(() => this.bind());
   }
 
-  /**
-   * Bind all events to the plugin methods
-   */
   bind = () => {
     // Handle chat events
     if (typeof this.onCommand === 'function') {
@@ -35,19 +31,6 @@ export default class Plugin {
       this.bot.on('chat', (username, message) => this.onChat(username, message));
     }
 
-    // Handle spawn events
-    if (typeof this.onSpawn === 'function') {
-      this.bot.on('spawn', () => this.onSpawn());
-    }
-
-    if (typeof this.onRespawn === 'function') {
-      this.bot.on('respawn', () => this.onRespawn());
-    }
-
-    if (typeof this.onHealthFoodChange === 'function') {
-      this.bot.on('health', () => this.onHealthFoodChange());
-    }
-
     // Handle navigation events
     if (typeof this.onNavigate === 'function') {
       this.bot.navigate.on('pathPartFound', (path) => this.onNavigate('pathPartFound', path));
@@ -56,11 +39,13 @@ export default class Plugin {
       this.bot.navigate.on('arrived', () => this.onNavigate('arrived', null));
       this.bot.navigate.on('interrupted', () => this.onNavigate('interrupted', null));
     }
+
+    // Handle block updates
+    if (typeof this.onBlockUpdate === 'function') {
+      this.bot.on('blockUpdate', this.onBlockUpdate);
+    }
   };
 
-  /**
-   * Changes the state of the plugin
-   */
   setState = (obj) => {
     this.state = {
       ...this.state,
@@ -68,19 +53,13 @@ export default class Plugin {
     };
   };
 
-  /**
-   * Changes the state of the bot
-   */
   setBotState = (obj) => {
     this.instance.state = {
-      ...this.state.instance,
+      ...this.instance.state,
       ...obj,
     };
   };
 
-  /**
-   * Write the log of this plugin
-   */
   log = (message) => {
     console.log(`[${chalk.cyan(this.bot.username)}][${chalk.red(this.constructor.name.toLocaleLowerCase())}] ${message}`);
   };

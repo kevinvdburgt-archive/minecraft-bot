@@ -1,19 +1,40 @@
-import Plugin from '../plugin';
+import Plugin from '../Plugin';
 
 export default class Info extends Plugin {
   onCommand = (username, command, args) => {
     switch (command) {
       case 'hp':
       case 'health':
-        this.bot.chat(`I have ${Math.round((this.bot.health / 2) * 10) / 10}/10 hearts and ${Math.round((this.bot.food / 2) * 10) / 10}/10 food.`);
+      case 'food':
+        const health = Math.round((this.bot.health / 2) * 10) / 10;
+        const food = Math.round((this.bot.food / 2) * 10) / 10;
+        this.bot.chat(`I have ${health} hearts and ${food} food.`)
         break;
 
       case 'pos':
       case 'position':
       case 'loc':
       case 'location':
-        this.bot.chat(`I'm at ${Math.round(this.bot.entity.position.x)}, ${Math.round(this.bot.entity.position.y)}, ${Math.round(this.bot.entity.position.z)} in the ${this.bot.game.dimension}`);
+        const x = Math.round(this.bot.entity.position.x);
+        const y = Math.round(this.bot.entity.position.y);
+        const z = Math.round(this.bot.entity.position.z);
+        const dimension = this.bot.game.dimension;
+        this.bot.chat(`I'm at ${x} ${y} ${z} in the ${dimension}`);
         break;
     }
+  };
+
+  onSpawn = () => {
+    this.log('Spawned');
+  };
+
+  onRespawn = () => {
+    this.log('Respawned');
+  };
+
+  onHealthFoodChange = () => {
+    const health = Math.round((this.bot.health / 2) * 10) / 10;
+    const food = Math.round((this.bot.food / 2) * 10) / 10;
+    this.log(`HP: ${health}, Food: ${food}`);
   };
 };

@@ -1,4 +1,29 @@
 # Minecraft Bot
+This bot is a helper for ingame task, such as mining.
+
+## Setup
+Copy the `config.example.json` to `config.json` and fill in the config parameters.
+
+## Plugins
+You can see the plugin in the ./src/plugins folder.
+
+### Chat.js
+Monitors the ingame chat and reports it to the console.
+
+### Info.js
+Monitors important events, such as spawning, respawning and reports it to the console.
+
+There are also a few commands to get some information about the bot. To ask about the health of the player, use the command `hp` (aliases: `health` or `food`). To ask about the current location and position of the bot, use the command `pos` (aliases: `position`, `loc` or `location`)
+
+### Sleep.js
+Controls the sleep and wake actions of the bot. Uses command `sleep` to sleep in the nearest bed. And wake (alias `wakeup`) to wake up.
+
+### Come.js
+Navigate the bot around.
+
+To let the bot comes to your current location, use the command `come`. If you want to sent the bot to another player's location use the command `come <playername>`. Or, if you want to sent the bot to specific location, you can tuse `come <x> <y> <z>` to move the bot around.
+
+<!-- # Minecraft Bot
 This bot is an helper ingame to give him repetitve tasks, like stripmining.
 
 ## Setup
@@ -26,4 +51,4 @@ Replace `botname` with the ingame username.
 |`botname excavate stop`|excavate.js|Stops the excavating process|
 |`botname inventory`|inventory.js|Display's all the items in the bot's inventory|
 |`botname inventory toss`|inventory.js|Tosses all items from the inventory's bot|
-|`botname inventory deposit`|inventory.js|Deposits the the inventory into the nearest chest|
+|`botname inventory deposit`|inventory.js|Deposits the the inventory into the nearest chest| -->

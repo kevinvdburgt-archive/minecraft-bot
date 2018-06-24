@@ -1,13 +1,9 @@
-import Bot from './bot';
-import config from '../config';
+import MinecraftBot from './MinecraftBot';
 import { log } from './utils';
+import config from '../config';
 
-log(`Starting the Minecraft Bot`);
+log(`Creating ${config.bots.length} bot(s)..`);
 
-const bots = config.bots.map((botConfig) => {
-  return new Bot(botConfig);
+const bots = config.bots.map((cfg) => {
+  return new MinecraftBot(cfg);
 });
-
-log(`${bots.length} bot(s) loaded`);
-
-// @TODO: Add some sort of cli to manage these bots

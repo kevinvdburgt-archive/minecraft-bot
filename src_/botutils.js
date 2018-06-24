@@ -1,3 +1,14 @@
+export const deposit = (bot, position) => {
+  return new Promise((resolve, reject) => {
+
+  });
+
+  const block = bot.blockAt(position);
+
+  if (!block)
+};
+
+
 export const navigate = (bot, position, endRadius = 1, timeout = 5000) => {
   return new Promise((resolve, reject) => {
     const aStar = bot.navigate.findPathSync(position, {
