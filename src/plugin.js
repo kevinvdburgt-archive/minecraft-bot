@@ -1,8 +1,10 @@
+import chalk from 'chalk';
 export default class Plugin {
   state = {};
 
   constructor (instance) {
     this.bot = instance.bot;
+    this.instance = instance;
     setImmediate(() => this.bind());
   }
 
@@ -22,6 +24,11 @@ export default class Plugin {
 
         this.onCommand(username, args.shift(), args);
       });
+    }
+
+    // Handle chat events
+    if (typeof this.onChat === 'function') {
+      this.bot.on('chat', (username, message) => this.onChat(username, message));
     }
 
     // Handle navigation events
@@ -47,8 +54,22 @@ export default class Plugin {
   };
 
   setBotState = (obj) => {
-
+    this.instance.state = {
+      ...this.instance.state,
+      ...obj,
+    };
   };
 
+  log = (message) => {
+    console.log(`[${chalk.cyan(this.bot.username)}][${chalk.red(this.constructor.name.toLocaleLowerCase())}] ${message}`);
+  };
 
+  /**
+   * Get a plugin instance by it's classname.
+   */
+  plugin = (name) => {
+    return this.instance.plugins.find((plugin) => {
+      return plugin.constructor.name === name;
+    });
+  };
 };

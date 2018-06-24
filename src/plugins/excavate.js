@@ -1,129 +1,163 @@
 import vec3 from 'vec3';
 import Plugin from '../plugin';
-import { efficientDig } from '../botutils';
+import { efficientDig, navigate } from '../botutils';
 
 export default class Excavate extends Plugin {
   state = {
     excavating: false,
-    landmarks: [],
+    landmark: {
+      start: null,
+      end: null,
+      toolChest: null,
+      depositChest: null,
+    },
   };
 
-  excavatePostion = (step) => {
-    const maxx = Math.max(this.state.landmarks[0].x, this.state.landmarks[1].x);
-    const minx = Math.min(this.state.landmarks[0].x, this.state.landmarks[1].x);
-    const maxy = Math.max(this.state.landmarks[0].y, this.state.landmarks[1].y);
-    const miny = Math.min(this.state.landmarks[0].y, this.state.landmarks[1].y);
-    const maxz = Math.max(this.state.landmarks[0].z, this.state.landmarks[1].z);
-    const minz = Math.min(this.state.landmarks[0].z, this.state.landmarks[1].z);
-
-    const localx = Math.abs(maxx - minx + 1);
-    const localz = Math.abs(maxz - minz + 1);
-
-    const square = localx * localz;
-
-    return vec3(
-      (step % localx) + minx, // @TODO: Flip every row for performance?
-      maxy - Math.floor(step / square) - 1,
-      (Math.floor(step / localz) % localz) + minz,
-    );
+  excavateVec3 = (step, width, length) => {
+    const x = step % width;
+    const y = ~Math.ceil(step / (width * length));
+    const z = Math.floor(step / length);
+    return vec3(x, y, z);
   };
 
-  excavate = (step) => {
+  start = () => {
+    this.bot.chat(`Place a chest where i can take the tools from first.`);
+
+    this.setState({
+      excavating: true,
+      landmark: {
+        start: null,
+        end: null,
+        toolChest: null,
+        depositChest: null,
+      },
+    });
+  };
+
+  stop = () => {
+    this.setState({
+      excavating: false,
+    });
+  };
+
+  excavate = async (step) => {
     if (!this.state.excavating) {
       return;
     }
 
-    const position = this.excavatePostion(step);
-    const block = this.bot.blockAt(position);
+    const targetPosition = this.excavateVec3(
+      step,
+      Math.abs(this.state.landmark.start.x - this.state.landmark.end.x),
+      Math.abs(this.state.landmark.start.z - this.state.landmark.end.z)
+    ).plus(vec3(
+      Math.min(this.state.landmark.start.x, this.state.landmark.end.x),
+      Math.max(this.state.landmark.start.y, this.state.landmark.end.y),
+      Math.min(this.state.landmark.start.z, this.state.landmark.end.z),
+    ));
 
-    // If the block is not diggable, ignore it and continue to the next step
-    if (block.boundingBox !== 'block') {
-      this.excavate(step + 1);
+    console.log(targetPosition);
+
+    const targetBlock = this.bot.blockAt(targetPosition);
+
+    if (targetBlock.boundingBox !== 'block') {
+      setImmediate(() => this.excavate(step + 1));
       return;
     }
 
-    // Navigate to the block, so we are in range for digging it
-    const path = this.bot.navigate.findPathSync(position.plus(vec3(0, 1, 0)), {
-      timeout: 2500,
-      endRadius: 1,
-    });
+    await navigate(this.bot, targetPosition.plus(vec3(0, 1, 0)), 1);
+    await efficientDig(this.bot, targetBlock);
 
-    this.bot.navigate.walk(path.path, (status) => {
-      efficientDig(this.bot, block)
-        .then(() => {
-          this.excavate(step + 1);
-        })
-        .catch((err) => {
-          console.log(err);
-          this.excavate(step + 1);
-        });
-    });
+    // @TODO: Plug dangerous blocks, such as water and lava
+    // @TODO: Check the inventory, if it is full, return to the deposit chest and put everything away
+    // @TODO: Make sure, there are tools and soem basic building blocks in the inventory
+
+    setImmediate(() => this.excavate(step + 1));
   };
 
+  /**
+   * Handle commands
+   */
   onCommand = (username, command, args) => {
-    if (command !== 'excavate') {
+    if (command !== 'excavate' && command !== 'exc') {
       return;
     }
 
-    // Start the excavation
     if (args.length === 0) {
-      if (this.state.excavating) {
-        this.bot.chat(`Already busy with excavating.`);
-        return;
-      }
-
-      if (!this.bot.players[username].entity) {
-        this.bot.chat(`You are to far away from me.`);
-        return;
-      }
-
-      this.bot.chat(`Places 2 redstone torches for the landmarks.`);
-
-      this.setState({
-        excavating: true,
-        landmarks: [],
-      });
-    }
-
-    else if (args.length === 1 && args[0] === 'stop') {
-      if (!this.state.excavating) {
-        this.bot.chat(`I'm not excavating...`);
-        return;
-      }
-
-      this.bot.chat(`Okay, stopping the excavating!`);
-
-      this.setState({
-        excavating: false,
-        landmarks: [],
-      });
+      this.start();
+    } else if (args.length === 1 && args[0] === 'stop') {
+      this.stop();
     }
   };
 
+  /**
+   * Handle block updates
+   */
   onBlockUpdate = (oldBlock, newBlock) => {
-    if (this.state.excavating !== true || this.state.landmarks.length === 2) {
+    if (this.state.excavating === false || (
+      this.state.landmark.start !== null &&
+      this.state.landmark.end !== null &&
+      this.state.landmark.toolChest !== null &&
+      this.state.landmark.depositChest !== null
+    )) {
       return;
     }
 
-    if (newBlock.name === 'redstone_torch') {
-      this.setState({
-        landmarks: [
-          ...this.state.landmarks,
-          newBlock.position,
-        ],
-      });
+    // Check for the toolchest placement first
+    if (this.state.landmark.toolChest === null) {
+      if (newBlock.name === 'chest') {
+        this.setState({
+          landmark: {
+            ...this.state.landmark,
+            toolChest: newBlock.position,
+          },
+        });
+  
+        this.bot.chat(`Now place a chest where i can deposit the mined items.`);
+      }
     }
 
-    if (this.state.landmarks.length === 2) {
-      const minx = Math.min(this.state.landmarks[0].x, this.state.landmarks[1].x);
-      const maxx = Math.max(this.state.landmarks[0].x, this.state.landmarks[1].x);
-      const minz = Math.min(this.state.landmarks[0].z, this.state.landmarks[1].z);
-      const maxz = Math.max(this.state.landmarks[0].z, this.state.landmarks[1].z);
-      const square = Math.abs(maxx - minx + 1) * Math.abs(maxz - minz + 1);
+    // Check for the depositchest second
+    else if (this.state.landmark.depositChest === null) {
+      if (newBlock.name === 'chest') {
+        this.setState({
+          landmark: {
+            ...this.state.landmark,
+            depositChest: newBlock.position,
+          },
+        });
+  
+        this.bot.chat(`Now mark the area with the first redstone torch.`);
+      }
+    }
 
-      this.bot.chat(`Starting excavating the area of ${square}m2.`);
+    // Check for the start landmark
+    else if (this.state.landmark.start === null) {
+      if (newBlock.name === 'redstone_torch') {
+        this.setState({
+          landmark: {
+            ...this.state.landmark,
+            start: newBlock.position,
+          },
+        });
+  
+        this.bot.chat(`Now mark the area with the last redstone torch.`);
+      }
+    }
 
-      this.excavate(0);
+    // Check for the end landmark
+    else if (typeof this.state.landmark.end !== 'Vec3') {
+      if (newBlock.name === 'redstone_torch') {
+        this.setState({
+          landmark: {
+            ...this.state.landmark,
+            end: newBlock.position,
+          },
+        });
+  
+        this.bot.chat(`Starting the excavation.`);
+  
+        this.excavate(0);
+      }
     }
   };
 }

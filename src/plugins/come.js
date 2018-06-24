@@ -65,11 +65,11 @@ export default class Come extends Plugin {
       return;
     }
 
+    this.bot.navigate.stop('interrupted');
+
     this.setState({
       target: null,
     });
-
-    this.bot.navigate.stop();
   };
 
   onCommand = (username, command, args) => {
@@ -109,6 +109,8 @@ export default class Come extends Plugin {
     if (this.state.target === null) {
       return;
     }
+
+    this.log(`Navigation status: ${action}`);
 
     switch (action) {
       case 'arrived':

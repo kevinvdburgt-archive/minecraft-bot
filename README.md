@@ -26,3 +26,4 @@ Replace `botname` with the ingame username.
 |`botname excavate stop`|excavate.js|Stops the excavating process|
 |`botname inventory`|inventory.js|Display's all the items in the bot's inventory|
 |`botname inventory toss`|inventory.js|Tosses all items from the inventory's bot|
+|`botname inventory deposit`|inventory.js|Deposits the the inventory into the nearest chest|

@@ -1,7 +1,11 @@
 import Plugin from '../plugin';
+import { navigate } from '../botutils';
 
 export default class Sleep extends Plugin {
-  sleep = () => {
+  /**
+   * Find the current closest bed, and sleep in it.
+   */
+  sleep = async () => {
     const bed = this.bot.findBlock({
       matching: 26,
     });
@@ -9,39 +13,47 @@ export default class Sleep extends Plugin {
     if (!bed) {
       this.bot.chat(`I can't find any nearby beds.`);
       return;
-    }
+    };
 
-    const path = this.bot.navigate.findPathSync(bed.position, {
-      timeout: 2000,
-      endRadius: 1,
-    });
+    await navigate(this.bot, bed.position);
 
-    this.bot.navigate.walk(path.path, () => {
-      this.bot.sleep(bed, (err) => {
-        if (err) {
-          this.bot.chat(`I can't sleep, ${err.message}.`);
-          return;
-        }
-        this.bot.chat(`I'm sleeping`);
-      });
-    });
-  };
-
-  wake = () => {
-    this.bot.wake((err) => {
+    this.bot.sleep(bed, (err) => {
       if (err) {
-        this.bot.chat(`I can't wake up, ${err.message}.`);
+        this.bot.chat(`I can't sleep, ${err.message}.`);
         return;
       }
-      this.bot.chat(`I woke up`);
+
+      this.bot.chat(`Sleeping..`);
     });
   };
 
+  /**
+   * Wake up from sleeping
+   */
+  wake = async () => {
+    this.bot.wake((err) => {
+      if (err) {
+        this.bot.chat(`I can't wake up, ${err}.`);
+        return;
+      }
+
+      this.bot.chat(`I woke up!`);
+    });
+  };
+
+  /**
+   * Handle commands
+   */
   onCommand = (username, command, args) => {
-    if (command === 'sleep') {
-      this.sleep();
-    } else if (command === 'wake') {
-      this.wake();
+    switch (command) {
+      case 'sleep':
+        this.sleep();
+        break;
+
+      case 'wake':
+      case 'wakeup':
+        this.wake();
+        break;
     }
   };
 };

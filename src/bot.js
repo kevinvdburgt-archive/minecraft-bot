@@ -10,6 +10,7 @@ const mineflayerNavigate = mineflayerNavigationFactory(mineflayer);
 
 export default class Bot {
   plugin = [];
+  state = {};
 
   constructor (config) {
     this.config = config;
@@ -125,5 +126,4 @@ export default class Bot {
 
     writeCache(`bot-${this.config.username}`, this.cache);
   };
-
 }

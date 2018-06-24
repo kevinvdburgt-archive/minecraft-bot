@@ -27,6 +27,8 @@
     "mineflayer-navigate": "0.0.10",
     "mineflayer-scaffold": "0.0.5",
     "prismarine-tokens": "^1.0.3",
+    "react": "^16.4.1",
+    "react-dom": "^16.4.1",
     "request": "^2.87.0",
     "sha1": "^1.1.1",
     "vec3": "^0.1.3",
