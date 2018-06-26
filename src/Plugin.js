@@ -61,6 +61,11 @@ export default class Plugin {
     if (typeof this.onBlockUpdate === 'function') {
       this.bot.on('blockUpdate', this.onBlockUpdate);
     }
+
+    // Handle entity spawns
+    if (typeof this.onEntitySpawn === 'function') {
+      this.bot.on('entitySpawn', this.onEntitySpawn);
+    }
   };
 
   /**

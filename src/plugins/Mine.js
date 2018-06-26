@@ -15,14 +15,6 @@ export default class Mine extends Plugin {
     },
   };
 
-  constructor (instance) {
-    super(instance);
-
-    this.bot.on('spawn', () => {
-      this.start('excavate');
-    });
-  }
-
   start = (algorithm) => {
     this.setState({
       mining: true,
