@@ -87,3 +87,16 @@ export const wake = (bot) => {
     });
   });
 };
+
+export const digEfficient = (bot, block) => {
+  return new Promise(async (resolve, reject) => {
+    // @TODO: Equip the most efficient tool, if there arent any tools, reject.
+
+    bot.dig(block, (err) => {
+      if (err) {
+        return reject(err);
+      }
+      resolve();
+    });
+  });
+};

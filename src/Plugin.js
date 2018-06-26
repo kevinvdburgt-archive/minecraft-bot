@@ -56,16 +56,25 @@ export default class Plugin {
       this.bot.navigate.on('arrived', () => this.onNavigate('arrived', null));
       this.bot.navigate.on('interrupted', () => this.onNavigate('interrupted', null));
     }
+
+    // Handle block updates
+    if (typeof this.onBlockUpdate === 'function') {
+      this.bot.on('blockUpdate', this.onBlockUpdate);
+    }
   };
 
   /**
    * Changes the state of the plugin
    */
   setState = (obj) => {
+    const oldState = this.state;
+
     this.state = {
       ...this.state,
       ...obj,
     };
+
+    // console.log(oldState, this.state);
   };
 
   /**
