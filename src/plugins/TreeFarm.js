@@ -35,7 +35,7 @@ export default class TreeFarm extends Plugin {
     });
   };
 
-  farmable = (block) => [17].includes(block.type) && !this.state.ignorePositions.find((position) => {
+  farmable = (block) => [17, 162].includes(block.type) && !this.state.ignorePositions.find((position) => {
     return block.position.floored().x === position.floored().x &&
       block.position.floored().y === position.floored().y &&
       block.position.floored().z === position.floored().z;
@@ -65,14 +65,14 @@ export default class TreeFarm extends Plugin {
    * Check if the block is part of a valid tree.
    */
   isValidTree = (block) => {
-    if (block.type !== 17) {
+    if (![17, 162].includes(block.type)) {
       return false;
     }
 
     for (let height = 1; height < 20; height++) {
       const validate = this.bot.blockAt(block.position.plus(vec3(0, height, 0)));
 
-      if (validate && validate.type === 18) {
+      if (validate && [18, 161].includes(validate.type)) {
         return true;
       }
     }
@@ -98,7 +98,7 @@ export default class TreeFarm extends Plugin {
 
     // Check if the tree is valid, there should be leaves above it
     if (!this.isValidTree(block)) {
-      this.log(`Found an invalid tree at ${block.position}.`);
+      this.log(`Found an invalid tree at ${block.position}: ${block.type}.`);
       this.setState({
         ignorePositions: [
           ...this.state.ignorePositions,
